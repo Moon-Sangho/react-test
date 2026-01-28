@@ -9,11 +9,13 @@ A React + TypeScript + Vite project with React Router for navigation, TanStack Q
 ## Common Commands
 
 ### Development
+
 - `pnpm dev` - Start Vite development server with HMR
 - `pnpm build` - Build for production (runs TypeScript check + Vite build)
 - `pnpm preview` - Preview production build locally
 
 ### Testing
+
 - `pnpm test` - Run tests in watch mode
 - `pnpm test:run` - Run tests once
 - `pnpm test:ui` - Run tests with interactive UI dashboard
@@ -22,6 +24,7 @@ A React + TypeScript + Vite project with React Router for navigation, TanStack Q
 - To run tests matching a pattern: `pnpm test -t "add"` (in watch mode)
 
 ### Linting & Type Checking
+
 - `pnpm lint` - Run ESLint on all TypeScript/TSX files
 - `pnpm build` also runs TypeScript type checking via `tsc -b`
 
@@ -79,64 +82,13 @@ src/
 ## Key Technologies & Patterns
 
 ### React Compiler
+
 The React Compiler is enabled in vite.config.ts via babel-plugin-react-compiler. This automatically optimizes components but impacts dev and build performance. Reference: https://react.dev/learn/react-compiler
 
-### Server State Management
-TanStack Query is configured in main.tsx. Use the `QueryClient` for managing async server state. React Query DevTools are enabled in development.
-
-**Query Key Factory Pattern**
-- Query keys are centralized in `src/hooks/queries/query-keys.ts` using the factory pattern
-- Example structure:
-  ```typescript
-  export const queryKeys = {
-    coins: {
-      all: ['coins'] as const,
-      lists: () => [...queryKeys.coins.all, 'list'] as const,
-      list: (page: number) => [...queryKeys.coins.lists(), { page }] as const,
-      details: () => [...queryKeys.coins.all, 'detail'] as const,
-      detail: (id: string) => [...queryKeys.coins.details(), id] as const,
-      charts: () => [...queryKeys.coins.all, 'chart'] as const,
-      chart: (id: string, days: number) => [...queryKeys.coins.charts(), id, days] as const,
-    },
-  };
-  ```
-
-**Hook Organization**
-- **Query hooks**: Located in `src/hooks/queries/` using `useSuspenseQuery` pattern
-  - Each hook uses the query key factory
-  - Returns full `useSuspenseQuery` result object (not just data)
-  - Example: `useCoinsList()` returns `UseQueryResult` with `{ data: Coin[], ... }`
-  - Consumers destructure data: `const { data: coins } = useCoinsList()`
-  - Suspense handles loading, Error Boundary handles errors
-  - Colocated tests with `.test.ts` extension
-- **State hooks**: Located in `src/hooks/` for non-query logic
-  - Example: `useFavorites()` manages localStorage state and syncs across tabs
-- **Mutation hooks**: Would be located in `src/hooks/mutations/` if needed for mutations
-- Each hook file contains a single custom hook that encapsulates logic
-
-**Suspense & Error Boundary Pattern**
-- Use `AsyncBoundary` component to wrap components that use `useSuspenseQuery`
-- `AsyncBoundary` combines `Suspense` (for loading) and Error Boundary (for errors)
-- Always provide `pendingFallback` (loading state) and `RejectedFallbackComponent` (error state)
-- Example:
-  ```typescript
-  const CryptoListContent = () => {
-    const { data: coins } = useCoinsList(); // Destructure from query result
-    // No loading/error handling needed - AsyncBoundary handles it
-    return <CoinList coins={coins} />;
-  };
-
-  const CryptoList = () => (
-    <AsyncBoundary
-      pendingFallback={<LoadingSpinner size="lg" message="Loading cryptocurrencies..." />}
-      RejectedFallbackComponent={ErrorMessage}
-    >
-      <CryptoListContent />
-    </AsyncBoundary>
-  );
-  ```
+### API Client Structure & Conventions
 
 **Repository Pattern**
+
 - API clients and utilities are organized as singleton objects (repositories)
 - Each repository encapsulates related functions under a single object
 - Examples:
@@ -144,6 +96,7 @@ TanStack Query is configured in main.tsx. Use the `QueryClient` for managing asy
   - `favoritesRepository`: localStorage operations for managing favorite coins
 - Benefits: Better code organization, scoped helper functions, consistent interface
 - Structure:
+
   ```typescript
   // src/api/coingecko/utils.ts - Helper functions
   export const transformCoinDetailResponse = (data: CoinGeckoDetail): CoinDetail => { ... };
@@ -164,40 +117,22 @@ TanStack Query is configured in main.tsx. Use the `QueryClient` for managing asy
   ```
 
 **API Response Transformation**
+
 - API responses are transformed to match application types at the API layer
 - Example: CoinGecko's `/coins/{id}` endpoint returns nested `market_data` structure
 - `transformCoinDetailResponse` flattens the response to match `CoinDetail` type
 - Rationale: Decouples application logic from API structure changes
 
-**Type Definitions**
-- Prefer `type` over `interface` for all type definitions
-- Use `type` for unions, intersections, and complex shape definitions
-- Example:
-  ```typescript
-  // Prefer type
-  export type Coin = {
-    id: string;
-    name: string;
-    price: number;
-  };
-
-  // Over interface
-  export interface Coin {
-    id: string;
-    name: string;
-    price: number;
-  }
-  ```
-- Rationale: `type` is more flexible and consistent across the codebase
-
 **Import Path Convention**
 All imports use absolute paths with the `@/` alias (configured in `tsconfig.app.json`):
+
 ```typescript
 import { useCoinsList } from "@/hooks/queries/use-coins-list";
 import type { Coin } from "@/types/coin";
 import { formatPrice } from "@/utils/format";
 import { coingeckoAPI } from "@/api/coingecko"; // or use transformCoinDetailResponse from @/api/coingecko/utils
 ```
+
 - `@/api/` - API clients
 - `@/components/` - UI components
 - `@/hooks/` - Custom hooks
@@ -206,9 +141,11 @@ import { coingeckoAPI } from "@/api/coingecko"; // or use transformCoinDetailRes
 - `@/utils/` - Utility functions
 
 ### Styling
+
 Tailwind CSS v4 is configured via @tailwindcss/vite plugin. Use Tailwind utility classes directly in JSX; no separate CSS files needed for component styles.
 
 ### Testing
+
 - **Framework**: Vitest (Jest-compatible)
 - **Environment**: jsdom (browser simulation)
 - **Setup**: src/test/setup.ts is automatically loaded
@@ -232,13 +169,17 @@ Tailwind CSS v4 is configured via @tailwindcss/vite plugin. Use Tailwind utility
 - **Hook testing**: Use `renderHook` from `@testing-library/react` for custom hooks
 
 ### Type Checking
+
 Strict mode enabled in tsconfig.app.json with:
+
 - `noUnusedLocals` and `noUnusedParameters` - removes dead code warnings
 - `noFallthroughCasesInSwitch` - prevents forgotten case breaks
 - `noUncheckedSideEffectImports` - flags potentially problematic side-effect imports
 
 ### ESLint
+
 Uses flat config (eslint.config.js). Includes:
+
 - typescript-eslint recommended rules
 - react-hooks rules
 - react-refresh rules (HMR support)
