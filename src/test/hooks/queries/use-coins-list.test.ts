@@ -1,9 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { getMarketList } from "@/hooks/queries/use-coins-list";
+import { COINGECKO_API_BASE_URL } from "@/api/coingekco-api";
 import { server } from "@/test/mocks/server";
 import { http, HttpResponse } from "msw";
-
-const API_BASE_URL = "https://api.coingecko.com/api/v3";
 
 describe("useCoinsList - API Layer", () => {
   it("should fetch top 50 coins with correct structure", async () => {
@@ -44,7 +43,9 @@ describe("useCoinsList - API Layer", () => {
   it("should handle API errors gracefully", async () => {
     // Override handler to return error
     server.use(
-      http.get(`${API_BASE_URL}/coins/markets`, () => HttpResponse.error()),
+      http.get(`${COINGECKO_API_BASE_URL}/coins/markets`, () =>
+        HttpResponse.error(),
+      ),
     );
 
     await expect(getMarketList()).rejects.toThrow();

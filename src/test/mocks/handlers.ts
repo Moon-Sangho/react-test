@@ -1,7 +1,11 @@
 import { http, HttpResponse } from "msw";
-import type { Coin, CoinDetail, SearchResponse, ChartData } from "../../types/coin";
-
-const API_BASE_URL = "https://api.coingecko.com/api/v3";
+import type {
+  Coin,
+  CoinDetail,
+  SearchResponse,
+  ChartData,
+} from "../../types/coin";
+import { COINGECKO_API_BASE_URL } from "@/api/coingekco-api";
 
 // Mock data for testing
 const mockCoins: Coin[] = [
@@ -64,11 +68,11 @@ const mockCoins: Coin[] = [
 ];
 
 export const handlers = [
-  http.get(`${API_BASE_URL}/coins/markets`, () => {
+  http.get(`${COINGECKO_API_BASE_URL}/coins/markets`, () => {
     return HttpResponse.json(mockCoins);
   }),
 
-  http.get(`${API_BASE_URL}/search`, ({ request }) => {
+  http.get(`${COINGECKO_API_BASE_URL}/search`, ({ request }) => {
     const url = new URL(request.url);
     const query = url.searchParams.get("query")?.toLowerCase() || "";
 
@@ -76,7 +80,7 @@ export const handlers = [
       .filter(
         (coin) =>
           coin.name.toLowerCase().includes(query) ||
-          coin.symbol.toLowerCase().includes(query)
+          coin.symbol.toLowerCase().includes(query),
       )
       .map((coin) => ({
         id: coin.id,
@@ -99,13 +103,13 @@ export const handlers = [
     return HttpResponse.json(response);
   }),
 
-  http.get(`${API_BASE_URL}/coins/:coinId`, ({ params }) => {
+  http.get(`${COINGECKO_API_BASE_URL}/coins/:coinId`, ({ params }) => {
     const coin = mockCoins.find((c) => c.id === params.coinId);
 
     if (!coin) {
       return HttpResponse.json(
         { status: { error_code: 1006, error_message: "coin not found" } },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -138,7 +142,7 @@ export const handlers = [
     return HttpResponse.json(detail);
   }),
 
-  http.get(`${API_BASE_URL}/coins/:coinId/market_chart`, () => {
+  http.get(`${COINGECKO_API_BASE_URL}/coins/:coinId/market_chart`, () => {
     const chartData: ChartData = {
       prices: Array.from({ length: 365 }, (_, i) => [
         new Date(2023, 0, 1 + i).getTime(),

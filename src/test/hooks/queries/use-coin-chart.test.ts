@@ -1,9 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { getCoinChart } from "@/hooks/queries/use-coin-chart";
+import { COINGECKO_API_BASE_URL } from "@/api/coingekco-api";
 import { server } from "@/test/mocks/server";
 import { http, HttpResponse } from "msw";
-
-const API_BASE_URL = "https://api.coingecko.com/api/v3";
 
 describe("getCoinChart - API Layer", () => {
   it("should fetch chart data with default days parameter (365)", async () => {
@@ -59,7 +58,7 @@ describe("getCoinChart - API Layer", () => {
   it("should handle API errors gracefully", async () => {
     // Override handler to return error
     server.use(
-      http.get(`${API_BASE_URL}/coins/:coinId/market_chart`, () =>
+      http.get(`${COINGECKO_API_BASE_URL}/coins/:coinId/market_chart`, () =>
         HttpResponse.error(),
       ),
     );

@@ -4,10 +4,9 @@ import {
   transformCoinDetailResponse,
 } from "@/hooks/queries/use-coin-detail";
 import type { CoinGeckoDetail } from "@/types/coin";
+import { COINGECKO_API_BASE_URL } from "@/api/coingekco-api";
 import { server } from "@/test/mocks/server";
 import { http, HttpResponse } from "msw";
-
-const API_BASE_URL = "https://api.coingecko.com/api/v3";
 
 describe("transformCoinDetailResponse", () => {
   const createMockCoinGeckoDetail = (
@@ -283,7 +282,9 @@ describe("getCoinDetail - API Layer", () => {
   it("should handle API errors gracefully", async () => {
     // Override handler to return error
     server.use(
-      http.get(`${API_BASE_URL}/coins/:coinId`, () => HttpResponse.error()),
+      http.get(`${COINGECKO_API_BASE_URL}/coins/:coinId`, () =>
+        HttpResponse.error(),
+      ),
     );
 
     await expect(getCoinDetail("bitcoin")).rejects.toThrow();

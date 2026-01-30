@@ -1,9 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { searchCoins } from "@/hooks/queries/use-coin-search";
+import { COINGECKO_API_BASE_URL } from "@/api/coingekco-api";
 import { server } from "@/test/mocks/server";
 import { http, HttpResponse } from "msw";
-
-const API_BASE_URL = "https://api.coingecko.com/api/v3";
 
 describe("useCoinSearch - API Layer", () => {
   it("should search coins by name and return SearchResponse structure", async () => {
@@ -76,7 +75,9 @@ describe("useCoinSearch - API Layer", () => {
 
   it("should handle API errors gracefully", async () => {
     // Override handler to return error
-    server.use(http.get(`${API_BASE_URL}/search`, () => HttpResponse.error()));
+    server.use(
+      http.get(`${COINGECKO_API_BASE_URL}/search`, () => HttpResponse.error()),
+    );
 
     await expect(searchCoins("bitcoin")).rejects.toThrow();
   });
