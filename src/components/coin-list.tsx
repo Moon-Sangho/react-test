@@ -1,11 +1,11 @@
 import type { Coin } from "@/types/coin";
 import { CoinCard } from "./coin-card";
 
-interface CoinListProps {
+type CoinListProps = {
   coins: Coin[];
   favorites: Record<string, boolean>;
   onToggleFavorite?: (coinId: string) => void;
-}
+};
 
 export const CoinList = ({
   coins,

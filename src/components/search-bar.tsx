@@ -1,10 +1,10 @@
 import { useState, useCallback } from "react";
 
-interface SearchBarProps {
+type SearchBarProps = {
   onSearch: (query: string) => void;
   placeholder?: string;
   debounceMs?: number;
-}
+};
 
 export const SearchBar = ({
   onSearch,

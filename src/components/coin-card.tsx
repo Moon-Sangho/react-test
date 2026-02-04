@@ -3,11 +3,11 @@ import { Heart } from "lucide-react";
 import type { Coin } from "@/types/coin";
 import { formatPrice, formatPercentage } from "@/utils/format";
 
-interface CoinCardProps {
+type CoinCardProps = {
   coin: Coin;
   isFavorite?: boolean;
   onToggleFavorite?: (coinId: string) => void;
-}
+};
 
 export const CoinCard = ({
   coin,

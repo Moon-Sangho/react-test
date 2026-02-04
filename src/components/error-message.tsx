@@ -1,9 +1,9 @@
-interface ErrorMessageProps {
+type ErrorMessageProps = {
   message?: string;
   onRetry?: () => void;
   error?: Error;
   resetErrorBoundary?: () => void;
-}
+};
 
 export const ErrorMessage = ({
   message,

@@ -28,38 +28,42 @@ TanStack Query is configured at the application entry point. Use the `QueryClien
 ## Hook Organization
 
 - **Query hooks**: Located in `src/hooks/queries/` using `useSuspenseQuery` pattern
-  - Each hook uses the query key factory
+  - Each hook uses the query key factory from `query-keys.ts`
   - Returns full `useSuspenseQuery` result object (not just data)
-  - Example: `useCoinsList()` returns `UseQueryResult` with `{ data: Coin[], ... }`
+  - Example: `useCoinsList()` returns query result with `{ data: Coin[], ... }`
   - Consumers destructure data: `const { data: coins } = useCoinsList()`
   - Suspense handles loading, Error Boundary handles errors
-  - Colocated tests with `.test.ts` extension
-  - **Collocation Pattern**: API functions are colocated within the hook file
-    - Place helper functions (e.g., `getMarketList`, `searchCoins`) directly in the hook file
-    - Follow this pattern: helpers first, then hook last
-    - Benefits: Related code together, easier navigation, single responsibility per file
-    - Example:
+  - Tests colocated in `src/hooks/queries/tests/` directory
 
-      ```typescript
-      // API function
-      export const getMarketList = async (page = 1) =>
-        (await apiClient.get<Coin[]>("/coins/markets", { params: { ... } })).data;
+  **Collocation Pattern**: API functions are colocated within the hook file
+  - Place API helper functions (e.g., `getMarketList`, `searchCoins`) directly in the hook file
+  - Follow this pattern: helper functions first → then the hook last
+  - Benefits: Related code together, easier navigation, single responsibility per file
+  - Example structure:
 
+    ```typescript
+    // src/hooks/queries/use-coins-list.ts
 
-      // Hook using the API function
-      export const useCoinsList = (page = 1) =>
-        useSuspenseQuery({
-          queryKey: queryKeys.coins.list(page),
-          queryFn: () => getMarketList(page),
-          staleTime: 1000 * 60,
-          gcTime: 1000 * 60 * 5,
-        });
-      ```
+    // 1. API function first
+    export const getMarketList = async (page = 1) =>
+      (await coingeckoApi.get<Coin[]>("/coins/markets", { params: { ... } })).data;
 
-- **Mutation hooks**: Would be located in `src/hooks/mutations/` if needed for mutations
-- **Normal hooks**: Located in `src/hooks/` for non-query logic
+    // 2. Hook using the API function
+    export const useCoinsList = (page = 1) =>
+      useSuspenseQuery({
+        queryKey: queryKeys.coins.list(page),
+        queryFn: () => getMarketList(page),
+        staleTime: 1000 * 60,
+        gcTime: 1000 * 60 * 5,
+      });
+    ```
+
+- **State management hooks**: Located in `src/hooks/use-favorites/`
   - Example: `useFavorites()` manages localStorage state and syncs across tabs
-- Each hook file contains a single custom hook that encapsulates logic
+  - Uses repository pattern: `favoritesRepository` for localStorage operations
+  - Tests colocated in `src/hooks/use-favorites/tests/`
+
+- Each hook file contains a single primary hook that encapsulates related logic
 
 ## Suspense & Error Boundary Pattern
 

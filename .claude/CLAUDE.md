@@ -32,51 +32,57 @@ A React + TypeScript + Vite project with React Router for navigation, TanStack Q
 
 ```
 src/
-├── main.tsx              - App entry point; sets up QueryClientProvider
-├── router.tsx            - React Router setup with BrowserRouter
-├── index.css             - Global styles
-├── api/                  - API clients and endpoints
-│   ├── axios-instance.ts - Axios configuration with interceptors
-│   └── coingecko/        - CoinGecko API repository
-│       ├── index.ts      - CoinGecko API methods (coingeckoAPI object)
-│       └── utils.ts      - API response transformation helpers
-├── pages/                - Route components
-│   ├── crypto-list.tsx   - Top 50 cryptocurrencies list with search
-│   ├── crypto-detail.tsx - Individual cryptocurrency details page
-│   └── favorites.tsx     - User's favorited cryptocurrencies
-├── components/           - Reusable UI components
-│   ├── layout.tsx        - Main layout wrapper with navigation
-│   ├── coin-card.tsx     - Cryptocurrency card component
-│   ├── coin-list.tsx     - Grid layout for coin cards
-│   ├── search-bar.tsx    - Search input with debounce
-│   ├── price-chart.tsx   - SVG price chart visualization
-│   ├── loading-spinner.tsx - Loading state component
-│   ├── error-message.tsx - Error state component
-│   ├── empty-state.tsx   - Empty state component
-│   └── async-boundary/   - Suspense + Error Boundary wrapper
-│       ├── index.tsx     - AsyncBoundary component
-│       └── error-boundary/ - Error boundary implementation
-├── hooks/                - Custom hooks (state management, side effects)
-│   ├── use-favorites.ts  - localStorage persistence for favorite coins
-│   └── queries/          - React Query data fetching hooks
-│       ├── query-keys.ts - Query key factory definitions
-│       ├── use-coins-list.ts - Fetch top 50 coins
-│       ├── use-coin-search.ts - Search coins by query
-│       ├── use-coin-detail.ts - Fetch detailed coin info
-│       └── use-coin-chart.ts - Fetch historical price data
-├── utils/                - Utility functions
-│   ├── format.ts         - Price/number formatting utilities
-│   └── storage.ts        - Favorites repository object
-├── types/                - TypeScript types and definitions
-│   └── coin.ts           - Cryptocurrency and API types
-├── assets/               - Static assets
-└── test/
-    ├── setup.ts          - Vitest setup (imports jest-dom matchers)
-    ├── mocks/            - MSW mock handlers for API testing
-    ├── utils/            - Tests for utility functions
-    ├── components/       - Tests for components
-    ├── hooks/            - Tests for custom hooks
-    └── pages/            - Tests for page components
+├── main.tsx                     - App entry point; sets up QueryClientProvider
+├── router.tsx                   - React Router setup with BrowserRouter
+├── index.css                    - Global styles
+├── api/                         - API clients and utilities
+│   ├── create-api-client.ts     - Axios client factory with interceptors
+│   └── coingekco-api.ts         - CoinGecko API endpoints
+├── pages/                       - Route page components
+│   ├── home.tsx                 - Landing/home page
+│   ├── crypto-list.tsx          - Top 50 cryptocurrencies list with search
+│   ├── crypto-detail.tsx        - Individual cryptocurrency details page
+│   ├── favorites.tsx            - User's favorited cryptocurrencies
+│   └── tests/                   - Page component tests
+├── components/                  - Reusable UI components
+│   ├── layout.tsx               - Main layout wrapper with navigation
+│   ├── coin-card.tsx            - Cryptocurrency card component
+│   ├── coin-list.tsx            - Grid layout for coin cards
+│   ├── search-bar.tsx           - Search input with debounce
+│   ├── price-chart.tsx          - SVG price chart visualization
+│   ├── loading-spinner.tsx      - Loading state component
+│   ├── error-message.tsx        - Error state component
+│   ├── empty-state.tsx          - Empty state component
+│   ├── async-boundary/          - Suspense + Error Boundary wrapper
+│   │   ├── index.tsx            - AsyncBoundary component
+│   │   ├── types.ts             - AsyncBoundary type definitions
+│   │   └── error-boundary/      - Error boundary implementation
+│   │       ├── index.tsx        - Error boundary component
+│   │       └── types.ts         - Error boundary type definitions
+│   └── tests/                   - Component tests
+├── hooks/                       - Custom hooks
+│   ├── queries/                 - React Query data fetching hooks
+│   │   ├── query-keys.ts        - Query key factory definitions
+│   │   ├── use-coins-list.ts    - Fetch top 50 coins
+│   │   ├── use-coin-search.ts   - Search coins by query
+│   │   ├── use-coin-detail.ts   - Fetch detailed coin info
+│   │   ├── use-coin-chart.ts    - Fetch historical price data
+│   │   └── tests/               - Query hook tests
+│   └── use-favorites/           - Favorites state management
+│       ├── index.ts             - useFavorites hook
+│       ├── favorites-repository.ts - localStorage operations
+│       └── tests/               - Favorites hook tests
+├── utils/                       - Utility functions
+│   ├── format.ts                - Price/number formatting utilities
+│   ├── number.ts                - Numeric computation utilities
+│   ├── setup-tests.ts           - Test setup utilities
+│   └── tests/                   - Utility function tests
+├── types/                       - TypeScript type definitions
+│   └── coin.ts                  - Cryptocurrency and API types
+├── __mocks__/                   - MSW mock handlers for API testing
+│   ├── handlers.ts              - MSW request handlers
+│   └── server.ts                - MSW server setup
+└── index.css                    - Global Tailwind CSS styles
 ```
 
 ## Key Technologies & Patterns
@@ -87,58 +93,57 @@ The React Compiler is enabled in vite.config.ts via babel-plugin-react-compiler.
 
 ### API Client Structure & Conventions
 
-**Repository Pattern**
+**API Client Factory Pattern**
 
-- API clients and utilities are organized as singleton objects (repositories)
-- Each repository encapsulates related functions under a single object
-- Examples:
-  - `coingeckoAPI` (`src/api/coingecko/`): CoinGecko API methods with utility functions
-  - `favoritesRepository`: localStorage operations for managing favorite coins
-- Benefits: Better code organization, scoped helper functions, consistent interface
-- Structure:
+- `src/api/create-api-client.ts` exports a factory function that creates configured Axios instances
+- Supports optional request/response interceptors for customization
+- CoinGecko API client is created in `src/api/coingekco-api.ts`
+- Example structure:
 
   ```typescript
-  // src/api/coingecko/utils.ts - Helper functions
-  export const transformCoinDetailResponse = (data: CoinGeckoDetail): CoinDetail => { ... };
-
-  // src/api/coingecko/index.ts - API repository
-  export const coingeckoAPI = {
-    async getMarketList(page = 1) { ... },
-    async getCoinDetail(coinId: string) {
-      const response = await apiClient.get(...);
-      return transformCoinDetailResponse(response.data); // Uses utility function
-    },
-    async getCoinChart(coinId: string, days: number) { ... },
-    async getCoinsPrice(ids: string[]) { ... },
+  // src/api/create-api-client.ts - Factory
+  export const createApiClient = ({ baseURL, interceptors }: CreateApiClientOptions) => {
+    const client = axios.create({ baseURL, timeout: 10000 });
+    // Apply interceptors if provided
+    return client;
   };
 
-  // Usage
-  const coin = await coingeckoAPI.getCoinDetail("bitcoin");
+  // src/api/coingekco-api.ts - API client instance
+  export const coingeckoApi = createApiClient({
+    baseURL: COINGECKO_API_BASE_URL,
+    interceptors: { /* response interceptors */ },
+  });
+
+  // Usage in hooks
+  export const getMarketList = async (page = 1) =>
+    (await coingeckoApi.get<Coin[]>("/coins/markets", { params: { ... } })).data;
   ```
 
-**API Response Transformation**
+**Collocated API Functions in Query Hooks**
 
-- API responses are transformed to match application types at the API layer
-- Example: CoinGecko's `/coins/{id}` endpoint returns nested `market_data` structure
-- `transformCoinDetailResponse` flattens the response to match `CoinDetail` type
-- Rationale: Decouples application logic from API structure changes
+- API functions are colocated within query hook files for related code organization
+- Each hook file contains: helper functions (API calls) → then the hook itself
+- Benefits: Single responsibility, easier navigation, related code together
+- Example: `src/hooks/queries/use-coins-list.ts` contains both `getMarketList` function and `useCoinsList` hook
+- Query functions are called directly without a separate API repository object
 
 **Import Path Convention**
+
 All imports use absolute paths with the `@/` alias (configured in `tsconfig.app.json`):
 
 ```typescript
 import { useCoinsList } from "@/hooks/queries/use-coins-list";
 import type { Coin } from "@/types/coin";
 import { formatPrice } from "@/utils/format";
-import { coingeckoAPI } from "@/api/coingecko"; // or use transformCoinDetailResponse from @/api/coingecko/utils
+import { coingeckoApi } from "@/api/coingekco-api";
 ```
 
-- `@/api/` - API clients
-- `@/components/` - UI components
-- `@/hooks/` - Custom hooks
-- `@/pages/` - Route components
-- `@/types/` - TypeScript types
-- `@/utils/` - Utility functions
+- `@/api/` - API client and utilities
+- `@/components/` - UI components (layout, coin-card, loading-spinner, error-message, etc.)
+- `@/hooks/` - Custom hooks (queries, use-favorites)
+- `@/pages/` - Route page components (home, crypto-list, crypto-detail, favorites)
+- `@/types/` - TypeScript type definitions
+- `@/utils/` - Utility functions (format, number, setup-tests)
 
 ### Styling
 
@@ -148,18 +153,21 @@ Tailwind CSS v4 is configured via @tailwindcss/vite plugin. Use Tailwind utility
 
 - **Framework**: Vitest (Jest-compatible)
 - **Environment**: jsdom (browser simulation)
-- **Setup**: src/test/setup.ts is automatically loaded
-- **Test organization**: Centralized in `src/test/` with same structure as source
+- **Setup**: `src/utils/setup-tests.ts` is automatically loaded (imports jest-dom matchers)
+- **Test organization**: Co-located with source code in `tests/` subdirectories
   ```
-  src/test/
-  ├── utils/         - Tests for src/utils/*
-  ├── components/    - Tests for src/components/*
-  ├── hooks/         - Tests for src/hooks/*
-  ├── pages/         - Tests for src/pages/*
-  └── mocks/         - MSW mock handlers for API testing
+  src/
+  ├── components/tests/        - Tests for src/components/*
+  ├── hooks/queries/tests/      - Tests for src/hooks/queries/*
+  ├── hooks/use-favorites/tests/ - Tests for src/hooks/use-favorites/*
+  ├── pages/tests/              - Tests for src/pages/*
+  ├── utils/tests/              - Tests for src/utils/*
+  ├── __mocks__/                - MSW mock handlers for API testing
+  │   ├── handlers.ts           - MSW request handlers
+  │   └── server.ts             - MSW server setup
   ```
 - **Test files**: Use `.test.ts` or `.test.tsx` extension
-- **Test configuration**: vite.config.ts configured to discover tests in `src/test/**/*.test.{ts,tsx}`
+- **Test configuration**: vite.config.ts configured to discover tests in `src/**/*.test.{ts,tsx}`
 - **Test patterns**:
   - Basic tests with `describe`/`it`
   - Concurrent tests with `describe.concurrent`
@@ -167,6 +175,7 @@ Tailwind CSS v4 is configured via @tailwindcss/vite plugin. Use Tailwind utility
   - Error/exception testing with `expect().toThrow`
   - To-do tests with `it.todo`
 - **Hook testing**: Use `renderHook` from `@testing-library/react` for custom hooks
+- **MSW Setup**: Mock server is configured in `src/__mocks__/server.ts` and handlers in `src/__mocks__/handlers.ts`
 
 ### Type Checking
 

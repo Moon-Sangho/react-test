@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Search } from "lucide-react";
 
-interface EmptyStateProps {
+type EmptyStateProps = {
   title?: string;
   message?: string;
   icon?: ReactNode;
@@ -9,7 +9,7 @@ interface EmptyStateProps {
     label: string;
     onClick: () => void;
   };
-}
+};
 
 export const EmptyState = ({
   title = "No items found",

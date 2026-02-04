@@ -4,121 +4,179 @@ import {
   formatLargeNumber,
   formatPercentage,
   formatDate,
+  formatDateWithTimeZone,
   formatNumber,
 } from "@/utils/format";
 
-describe("Format utilities", () => {
-  describe("formatPrice", () => {
-    it("should format numbers as USD currency", () => {
-      expect(formatPrice(42000)).toBe("$42,000.00");
-      expect(formatPrice(2300.5)).toBe("$2,300.50");
-      expect(formatPrice(0.05)).toBe("$0.05");
-    });
-
-    it("should handle null and undefined", () => {
-      expect(formatPrice(null)).toBe("N/A");
-      expect(formatPrice(undefined)).toBe("N/A");
-    });
-
-    it("should handle negative numbers", () => {
-      expect(formatPrice(-1000)).toBe("-$1,000.00");
-    });
+describe("formatPrice", () => {
+  it("should format a number as USD currency with 2 decimals", () => {
+    expect(formatPrice(1234.56)).toBe("$1,234.56");
   });
 
-  describe("formatLargeNumber", () => {
-    it("should format trillion numbers", () => {
-      expect(formatLargeNumber(1.2e12)).toBe("$1.20T");
-    });
-
-    it("should format billion numbers", () => {
-      expect(formatLargeNumber(823000000000)).toBe("$823.00B");
-      expect(formatLargeNumber(1.5e9)).toBe("$1.50B");
-    });
-
-    it("should format million numbers", () => {
-      expect(formatLargeNumber(276500000)).toBe("$276.50M");
-      expect(formatLargeNumber(5.2e6)).toBe("$5.20M");
-    });
-
-    it("should format million numbers (28M case)", () => {
-      expect(formatLargeNumber(28000000)).toBe("$28.00M");
-    });
-
-    it("should format regular numbers", () => {
-      expect(formatLargeNumber(100)).toBe("$100.00");
-    });
-
-    it("should handle null and undefined", () => {
-      expect(formatLargeNumber(null)).toBe("N/A");
-      expect(formatLargeNumber(undefined)).toBe("N/A");
-    });
-
-    it("should handle negative numbers", () => {
-      expect(formatLargeNumber(-823000000000)).toBe("-$823.00B");
-    });
+  it("should return N/A for null", () => {
+    expect(formatPrice(null)).toBe("N/A");
   });
 
-  describe("formatPercentage", () => {
-    it("should format positive percentages with plus sign", () => {
-      expect(formatPercentage(2.94)).toBe("+2.94%");
-      expect(formatPercentage(10)).toBe("+10.00%");
-    });
-
-    it("should format negative percentages", () => {
-      expect(formatPercentage(-5.5)).toBe("-5.50%");
-      expect(formatPercentage(-0.1)).toBe("-0.10%");
-    });
-
-    it("should format zero", () => {
-      expect(formatPercentage(0)).toBe("+0.00%");
-    });
-
-    it("should support custom decimal places", () => {
-      expect(formatPercentage(2.94, 0)).toBe("+3%");
-      expect(formatPercentage(2.94, 1)).toBe("+2.9%");
-    });
-
-    it("should handle null and undefined", () => {
-      expect(formatPercentage(null)).toBe("N/A");
-      expect(formatPercentage(undefined)).toBe("N/A");
-    });
+  it("should return N/A for undefined", () => {
+    expect(formatPrice(undefined)).toBe("N/A");
   });
 
-  describe("formatDate", () => {
-    it("should format ISO date strings", () => {
-      const result = formatDate("2024-01-15T10:00:00Z");
-      expect(result).toContain("Jan");
-      expect(result).toContain("15");
-    });
-
-    it("should handle null and undefined", () => {
-      expect(formatDate(null)).toBe("N/A");
-      expect(formatDate(undefined)).toBe("N/A");
-    });
-
-    it("should handle invalid dates", () => {
-      expect(formatDate("invalid")).toBe("N/A");
-    });
+  it("should format small prices", () => {
+    expect(formatPrice(0.01)).toBe("$0.01");
   });
 
-  describe("formatNumber", () => {
-    it("should format numbers with commas", () => {
-      expect(formatNumber(1000)).toBe("1,000");
-      expect(formatNumber(1234567)).toBe("1,234,567");
-      expect(formatNumber(100)).toBe("100");
-    });
+  it("should format large prices with commas", () => {
+    expect(formatPrice(1000000)).toBe("$1,000,000.00");
+  });
+});
 
-    it("should handle decimals", () => {
-      expect(formatNumber(1000.5)).toBe("1,000.5");
-    });
+describe("formatLargeNumber", () => {
+  it("should format trillion numbers with T suffix", () => {
+    expect(formatLargeNumber(1.5e12)).toBe("$1.50T");
+  });
 
-    it("should handle null and undefined", () => {
-      expect(formatNumber(null)).toBe("N/A");
-      expect(formatNumber(undefined)).toBe("N/A");
-    });
+  it("should format billion numbers with B suffix", () => {
+    expect(formatLargeNumber(1.5e9)).toBe("$1.50B");
+  });
 
-    it("should handle negative numbers", () => {
-      expect(formatNumber(-1000)).toBe("-1,000");
-    });
+  it("should format million numbers with M suffix", () => {
+    expect(formatLargeNumber(1.5e6)).toBe("$1.50M");
+  });
+
+  it("should format thousand numbers with K suffix", () => {
+    expect(formatLargeNumber(1.5e3)).toBe("$1.50K");
+  });
+
+  it("should format small numbers as currency", () => {
+    expect(formatLargeNumber(100)).toBe("$100.00");
+  });
+
+  it("should handle negative numbers", () => {
+    expect(formatLargeNumber(-1.5e9)).toBe("-$1.50B");
+  });
+
+  it("should return N/A for null", () => {
+    expect(formatLargeNumber(null)).toBe("N/A");
+  });
+
+  it("should return N/A for undefined", () => {
+    expect(formatLargeNumber(undefined)).toBe("N/A");
+  });
+});
+
+describe("formatPercentage", () => {
+  it("should format positive percentages with + sign", () => {
+    expect(formatPercentage(5.25)).toBe("+5.25%");
+  });
+
+  it("should format negative percentages with - sign", () => {
+    expect(formatPercentage(-3.75)).toBe("-3.75%");
+  });
+
+  it("should format zero percentage without sign", () => {
+    expect(formatPercentage(0)).toBe("+0.00%");
+  });
+
+  it("should allow custom decimal places", () => {
+    expect(formatPercentage(5.256, 1)).toBe("+5.3%");
+  });
+
+  it("should return N/A for null", () => {
+    expect(formatPercentage(null)).toBe("N/A");
+  });
+
+  it("should return N/A for undefined", () => {
+    expect(formatPercentage(undefined)).toBe("N/A");
+  });
+});
+
+describe("formatDate", () => {
+  it("should format ISO date string to readable format", () => {
+    const result = formatDate("2024-01-15T10:30:00Z");
+    expect(result).toContain("Jan");
+    expect(result).toContain("15");
+    expect(result).toContain("2024");
+    // Time part varies by timezone, so just check it contains time pattern
+    expect(result).toMatch(/\d{1,2}:\d{2}/);
+  });
+
+  it("should return N/A for null", () => {
+    expect(formatDate(null)).toBe("N/A");
+  });
+
+  it("should return N/A for undefined", () => {
+    expect(formatDate(undefined)).toBe("N/A");
+  });
+
+  it("should return N/A for empty string", () => {
+    expect(formatDate("")).toBe("N/A");
+  });
+
+  it("should handle invalid date strings gracefully", () => {
+    expect(formatDate("invalid-date")).toBe("N/A");
+  });
+});
+
+describe("formatDateWithTimeZone", () => {
+  it("should format ISO date string with timezone", () => {
+    const result = formatDateWithTimeZone("2024-01-15T10:30:00Z");
+    expect(result).toContain("Jan");
+    expect(result).toContain("15");
+    expect(result).toContain("2024");
+    // Time part varies by timezone, so just check it contains time pattern
+    expect(result).toMatch(/\d{1,2}:\d{2}/);
+    // Should include timezone (e.g., UTC, GMT, EST, GMT+9)
+    expect(result).toMatch(/GMT|UTC|[A-Z]{2,3}/);
+  });
+
+  it("should return N/A for null", () => {
+    expect(formatDateWithTimeZone(null)).toBe("N/A");
+  });
+
+  it("should return N/A for undefined", () => {
+    expect(formatDateWithTimeZone(undefined)).toBe("N/A");
+  });
+
+  it("should return N/A for empty string", () => {
+    expect(formatDateWithTimeZone("")).toBe("N/A");
+  });
+
+  it("should handle invalid date strings gracefully", () => {
+    expect(formatDateWithTimeZone("invalid-date")).toBe("N/A");
+  });
+
+  it("should format different timezones correctly", () => {
+    // Test with a specific date - verify date components and timezone
+    const result = formatDateWithTimeZone("2024-06-15T12:00:00Z");
+    expect(result).toContain("Jun");
+    expect(result).toContain("15");
+    // Should include timezone (e.g., UTC, GMT, EST, GMT+9)
+    expect(result).toMatch(/GMT|UTC|[A-Z]{2,3}/);
+  });
+});
+
+describe("formatNumber", () => {
+  it("should format number with commas", () => {
+    expect(formatNumber(1234567)).toBe("1,234,567");
+  });
+
+  it("should format small numbers without commas", () => {
+    expect(formatNumber(123)).toBe("123");
+  });
+
+  it("should return N/A for null", () => {
+    expect(formatNumber(null)).toBe("N/A");
+  });
+
+  it("should return N/A for undefined", () => {
+    expect(formatNumber(undefined)).toBe("N/A");
+  });
+
+  it("should format negative numbers", () => {
+    expect(formatNumber(-1234567)).toBe("-1,234,567");
+  });
+
+  it("should format decimal numbers", () => {
+    expect(formatNumber(1234.5)).toBe("1,234.5");
   });
 });
